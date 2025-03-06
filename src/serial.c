@@ -14,7 +14,7 @@
 struct termios tty;
 
 int initSerial() {
-  int serialPort = open(TTY_DEV, O_RDONLY | O_NOCTTY);
+  int serialPort = open(SERIAL_TTY_DEV, O_RDONLY | O_NOCTTY);
   if (serialPort == -1) {
     perror("Fehler beim Öffnen des seriellen Ports");
     exit(EXIT_FAILURE);
