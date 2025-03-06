@@ -16,7 +16,8 @@ int main() {
   
   while (1) {
     // Read next character and put it to the smlString
-    smlString[counter] = readCharacter();
+    //smlString[counter] = readCharacter();
+    smlString[counter] = readCharacterTimeout(SERIAL_TIMEOUT_SEC);
     counter++;
     
     //// Check if smlString is complete

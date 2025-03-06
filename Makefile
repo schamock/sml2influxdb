@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wpedantic -Wextra
+CFLAGS = -Wall -Wpedantic -Wextra -Werror
 
 TARGETDIR := bin
 TARGET := $(TARGETDIR)/easymeter
@@ -16,7 +16,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	@mkdir -p $(TARGETDIR)
-	$(CC) $^ -o $(TARGETDIR)/$(TARGET) $(CFLAGS)
+	$(CC) $^ -o $(TARGET) $(CFLAGS)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(BUILDDIR)

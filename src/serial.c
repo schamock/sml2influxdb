@@ -5,6 +5,8 @@
 #include <stdio.h>   // perror
 #include <stdlib.h>  // exit
 #include <unistd.h>  // read
+#include <poll.h>    // poll
+#include <stdint.h>  // int types
 
 #include "config.h"
 #include "serial.h"
@@ -13,7 +15,7 @@ int serialPort;
 struct termios tty;
 
 void initSerial() {
-  serialPort = open(TTY_DEV, O_RDONLY);
+  serialPort = open(TTY_DEV, O_RDONLY | O_NOCTTY);
   if (serialPort == -1) {
     perror("Fehler beim Öffnen des seriellen Ports");
     exit(EXIT_FAILURE);
@@ -65,5 +67,47 @@ char readCharacter() {
       perror("Fehler beim Lesen");
       exit(EXIT_FAILURE);
     }
+  }
+}
+
+char readCharacterTimeout(uint8_t timeoutSec) {
+  char smlChar;
+  struct pollfd pollPort = {0};
+  int ready;
+  ssize_t n;
+
+  pollPort.fd = serialPort;
+  pollPort.events = POLLIN;
+  ready = poll(&pollPort, 1, timeoutSec * 1000);
+
+  if (ready > 0) {
+    if (pollPort.revents & POLLIN) {
+      // char ready
+      n = read(serialPort, &smlChar, sizeof(smlChar));
+      if (n > 0) {
+        return smlChar;
+      }
+      else {
+        perror("read() return value <= 0");
+        exit(EXIT_FAILURE);
+      }
+    }
+    else {
+      // POLLERR, POLLHUP or PHLLNVAL
+      fprintf(stderr, "poll() error event: %s%s%s // \n",
+          (pollPort.revents & POLLERR)  ? "POLLERR "  : "", 
+          (pollPort.revents & POLLHUP)  ? "POLLHUP "  : "", 
+          (pollPort.revents & POLLNVAL) ? "POLLNVAL " : ""
+        );
+        exit(EXIT_FAILURE);
+    }
+  } else if (ready == 0) {
+    // timout
+    perror("poll() timeout detected");
+    exit(EXIT_FAILURE);
+  } else {
+    // error
+    perror("poll() error detected");
+    exit(EXIT_FAILURE);
   }
 }

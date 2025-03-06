@@ -3,5 +3,6 @@
 
 void initSerial();
 char readCharacter();
+char readCharacterTimeout(uint8_t timeoutSec);
 
 #endif
