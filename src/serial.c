@@ -74,6 +74,7 @@ char readCharacterTimeout(int serialPort, uint8_t timeoutSec) {
       }
       else {
         perror("read() return value <= 0");
+        close(serialPort);
         exit(EXIT_FAILURE);
       }
     }
@@ -84,15 +85,18 @@ char readCharacterTimeout(int serialPort, uint8_t timeoutSec) {
           (pollPort.revents & POLLHUP)  ? "POLLHUP "  : "", 
           (pollPort.revents & POLLNVAL) ? "POLLNVAL " : ""
         );
+        close(serialPort);
         exit(EXIT_FAILURE);
     }
   } else if (ready == 0) {
     // timout
     perror("poll() timeout detected");
+    close(serialPort);
     exit(EXIT_FAILURE);
   } else {
     // error
     perror("poll() error detected");
+    close(serialPort);
     exit(EXIT_FAILURE);
   }
 }
