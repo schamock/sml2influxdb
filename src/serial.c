@@ -11,11 +11,10 @@
 #include "config.h"
 #include "serial.h"
 
-int serialPort;
 struct termios tty;
 
-void initSerial() {
-  serialPort = open(TTY_DEV, O_RDONLY | O_NOCTTY);
+int initSerial() {
+  int serialPort = open(TTY_DEV, O_RDONLY | O_NOCTTY);
   if (serialPort == -1) {
     perror("Fehler beim Öffnen des seriellen Ports");
     exit(EXIT_FAILURE);
@@ -53,24 +52,10 @@ void initSerial() {
     exit(EXIT_FAILURE);
   }
 
-  return;
+  return serialPort;
 }
 
-char readCharacter() {
-  char smlChar;
-  while (1) {
-    ssize_t n = read(serialPort, &smlChar, sizeof(smlChar));
-    if (n > 0) {
-      return smlChar;
-    }
-    if (n < 0) {
-      perror("Fehler beim Lesen");
-      exit(EXIT_FAILURE);
-    }
-  }
-}
-
-char readCharacterTimeout(uint8_t timeoutSec) {
+char readCharacterTimeout(int serialPort, uint8_t timeoutSec) {
   char smlChar;
   struct pollfd pollPort = {0};
   int ready;

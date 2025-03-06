@@ -24,8 +24,21 @@ struct SmlAddresses {
   char voltageL3[8];
 };
 
-bool checkCrc(const char *message, uint16_t messageSize);
-void extractSmlData (const char *message, uint16_t messageSize);
+typedef struct {
+  char   manufacturer[256];
+  double value180;
+  double value280;
+  double sumActiveInstantaneousPowerTotal;
+  double sumActiveInstantaneousPowerL1;
+  double sumActiveInstantaneousPowerL2;
+  double sumActiveInstantaneousPowerL3;
+  double voltageL1;
+  double voltageL2;
+  double voltageL3;
+} smlResult;
+
+bool isSmlCrcCorrect(const char *message, uint16_t messageSize);
+smlResult extractSmlData (const char *message, uint16_t messageSize);
 bool isSmlStringComplete(const char *smlString, uint16_t counter);
 
 #endif

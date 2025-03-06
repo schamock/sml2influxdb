@@ -1,8 +1,7 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
-void initSerial();
-char readCharacter();
-char readCharacterTimeout(uint8_t timeoutSec);
+int initSerial();
+char readCharacterTimeout(int serialPort, uint8_t timeoutSec);
 
 #endif
