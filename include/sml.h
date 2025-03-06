@@ -17,13 +17,13 @@ struct SmlAddresses {
   char activePowerL1[8];
   char activePowerL2[8];
   char activePowerL3[8];
+  char publickey[8];
   char ownersNo[8];
   char voltageL1[8];
   char voltageL2[8];
   char voltageL3[8];
 };
 
-uint16_t calculateCrc16X25(const char *data, uint16_t len);
 bool checkCrc(const char *message, uint16_t messageSize);
 void extractSmlData (const char *message, uint16_t messageSize);
 char* getPostionOfEndString (const char *smlString, uint16_t counter);
