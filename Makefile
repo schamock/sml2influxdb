@@ -9,7 +9,7 @@ SRCEXT := c
 INC := -I include
 SOURCES := $(shell find $(SRCDIR) -type f -name '*.$(SRCEXT)')
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-LIBS := -lm
+LIBS := -lm -lcurl
 
 .PHONY: clean all
 

@@ -1,11 +1,12 @@
-// sudo apt install libcurl4-openssl-dev
-
 #include <stdio.h>
 #include <string.h>
-#include <curl/curl.h>
-
+#include <stdint.h>
+#include <time.h>
+#include <curl/curl.h> // sudo apt install libcurl4-openssl-dev
+#include "config.h"
 
 #define INFLUXDB_URL  "https://influx.ws3:8086/api/v2/write?org=" INFLUX_ORG "&bucket=" INFLUX_BUCKET "&precision=s"
+#define LINE_PROTOCOL INFLUX_MEASUREMENT ",location=office value=23.5"
 
 /*
  Curl statement:
@@ -20,39 +21,56 @@
         '
 */
 
+void formatSmlForInflux(char* influxString,
+                        uint16_t stringLength,
+                        double value180,
+                        double value280,
+                        double voltageL1,
+                        double voltageL2,
+                        double voltageL3,
+                        double sumActiveInstantaneousPowerTotal,
+                        double sumActiveInstantaneousPowerL1,
+                        double sumActiveInstantaneousPowerL2,
+                        double sumActiveInstantaneousPowerL3 ) {
+    snprintf(influxString, stringLength-1, INFLUX_MEASUREMENT " smlValue180=%.4f,smlValue280=%.4f,"
+                      "sumActiveInstantaneousPowerTotal=%.2f,sumActiveInstantaneousPowerL1=%.2f," 
+                      "sumActiveInstantaneousPowerL2=%.2f,sumActiveInstantaneousPowerL3=%.2f,"
+                      "smlVoltageL1=%.1f,smlVoltageL2=%.1f,smlVoltageL3=%.1f %ld",
+                    value180, value280, sumActiveInstantaneousPowerTotal, sumActiveInstantaneousPowerL1,
+                    sumActiveInstantaneousPowerL2, sumActiveInstantaneousPowerL3, voltageL1, voltageL2, voltageL3,
+                    time(NULL));
+}
+
 int test(void) {
   CURL *curl;
   CURLcode res;
+  struct curl_slist *headerList = {0};
 
-  // Daten im Line Protocol-Format
-  const char *data = LINE_PROTOCOL;
-
-  // libcurl initialisieren
-  curl_global_init(CURL_GLOBAL_DEFAULT);
+  curl_global_init(CURL_GLOBAL_SSL);
   curl = curl_easy_init();
 
   if (curl) {
-    // Setze die URL (InfluxDB Endpunkt zum Schreiben)
     curl_easy_setopt(curl, CURLOPT_URL, INFLUXDB_URL);
 
-    // Setze HTTP-POST-Daten
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
-
-    // Sende die Anfrage
+    headerList = curl_slist_append(headerList, "Authorization: Token " INFLUX_TOKEN);
+    headerList = curl_slist_append(headerList, "Content-Type: text/plain; charset=utf-8");
+    headerList = curl_slist_append(headerList, "Accept: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerList);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, LINE_PROTOCOL);
     res = curl_easy_perform(curl);
 
-    // Fehlerbehandlung
     if (res != CURLE_OK) {
-      fprintf(stderr, "Fehler beim Senden der Anfrage: %s\n", curl_easy_strerror(res));
+      fprintf(stderr, "Error sending to InfluxDB: %s\n", curl_easy_strerror(res));
     } else {
-      printf("Daten erfolgreich in InfluxDB geschrieben!\n");
+      printf("Data successfully sent to InfluxDB!\n");
     }
 
-    // Libcurl-Handle aufräumen
     curl_easy_cleanup(curl);
   }
+  else {
+    fprintf(stderr, "Error when calling curl_easy_init()\n");
+  }
 
-  // libcurl global aufräumen
   curl_global_cleanup();
 
   return 0;

@@ -7,9 +7,11 @@
 #include "config.h"
 #include "serial.h"
 #include "sml.h"
+#include "influx.h"
 
 int main() {	
   char smlString[MAX_SML_STRING] = "";
+  char influxString[INFLUX_MAX_STRING] = "";
   uint16_t counter = 0;
   smlResult result = {0};
   int serialPort;
@@ -30,6 +32,11 @@ int main() {
         printf("Voltages: %.1f V | %.1f V | %.1f V\n", result.voltageL1, result.voltageL2, result.voltageL3);
         printf("Total Power: %.2f W\n", result.sumActiveInstantaneousPowerTotal);
         printf("Phase Power: %.2f W | %.2f W | %.2f W\n", result.sumActiveInstantaneousPowerL1, result.sumActiveInstantaneousPowerL2, result.sumActiveInstantaneousPowerL3);
+
+        formatSmlForInflux(influxString, sizeof(influxString), result.value180, result.value280, result.voltageL1, result.voltageL2, result.voltageL3,
+                            result.sumActiveInstantaneousPowerTotal, result.sumActiveInstantaneousPowerL1,
+                            result.sumActiveInstantaneousPowerL2, result.sumActiveInstantaneousPowerL3);
+        //printf("Influx: %s\n", influxString);
       }
       else {
         printf("CRC nok\n");

@@ -8,5 +8,7 @@
 #define INFLUX_ORG          "THE_ORG"
 #define INFLUX_BUCKET       "THE_BUCKET"
 #define INFLUX_TOKEN        "THE_TOKEN"
+#define INFLUX_MEASUREMENT  "THE_MEASUREMENT"
+#define INFLUX_MAX_STRING   1024
 
 #endif
