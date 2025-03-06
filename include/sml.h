@@ -26,7 +26,6 @@ struct SmlAddresses {
 
 bool checkCrc(const char *message, uint16_t messageSize);
 void extractSmlData (const char *message, uint16_t messageSize);
-char* getPostionOfEndString (const char *smlString, uint16_t counter);
-uint8_t getLengthOfEndString();
+bool isSmlStringComplete(const char *smlString, uint16_t counter);
 
 #endif

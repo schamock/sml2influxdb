@@ -220,10 +220,14 @@ void extractSmlData (const char *message, uint16_t messageSize) {
   printf("-----------\n");
 }
 
-char* getPostionOfEndString (const char *smlString, uint16_t counter) {
-  return memmem(smlString, counter, smlEnd, sizeof(smlEnd));
-}
-
-uint8_t getLengthOfEndString() {
-  return sizeof(smlEnd);
+bool isSmlStringComplete(const char *smlString, uint16_t counter) {
+  char* posOfEnd = memmem(smlString, counter, smlEnd, sizeof(smlEnd));
+  if (NULL != posOfEnd) {
+    if( (uint16_t)(posOfEnd - smlString) + sizeof(smlEnd) + SML_TRAIL_SIZE - counter == 0)
+      return true;
+    else
+      return false;
+  } 
+  else
+    return false;
 }
