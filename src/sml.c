@@ -21,8 +21,17 @@ enum SmlType {
 
 struct SmlAttribute {
   enum SmlType typeOfAttribute;
-  char* attributePointer;
-  uint16_t lengthOfAttribute;
+  union {
+    uint64_t uint64;
+    int64_t  int64;
+    struct
+    {
+      char* octetPointer;
+      uint16_t octedLength;
+    };
+  };
+  //char* attributePointer;
+  //uint16_t lengthOfAttribute;
   char* nextAttribute;
 };
 
@@ -100,23 +109,25 @@ struct SmlAttribute getNextAttribute(char* startPointer, uint16_t maxLength) {
   printf("Current: %02X  ### Length: %d\n", curByte, lengthOfAttribute);
 
   if (lengthOfAttribute-1 > 0) {
-    if (returnValue.typeOfAttribute == SML_OCTET)
+    if (returnValue.typeOfAttribute == SML_OCTET) {
       printf("Content (str): %.*s\n", lengthOfAttribute-1, curPointer+1);
+      returnValue.octetPointer = curPointer+1;
+      returnValue.octedLength = lengthOfAttribute-1;
+    }
     else if (returnValue.typeOfAttribute == SML_INT || returnValue.typeOfAttribute == SML_UINT) {
-      int64_t test = 0;
+      //int64_t test = 0;
       if (returnValue.typeOfAttribute == SML_INT && curPointer[1] & 0x80)
-        test = -1;
+        returnValue.int64 = -1;
       
       for (uint16_t i = 1; i<lengthOfAttribute; i++)
-        test = (test << 8) | (uint8_t)curPointer[i];
-      printf("\nContent (int): %ld\n", test);
+        returnValue.int64 = (returnValue.int64 << 8) | (uint8_t)curPointer[i];
+
+      printf("\nContent (int): %ld\n", returnValue.int64);
     }
   }
   else
     printf("No content!\n");
 
-  returnValue.attributePointer = curPointer+1;
-  returnValue.lengthOfAttribute = lengthOfAttribute-1;
   returnValue.nextAttribute = startPointer += lengthOfAttribute;
   return returnValue;
 }
@@ -127,6 +138,8 @@ void extractSmlData (const char *message, uint16_t messageSize) {
   struct SmlAttribute retVal;
   
   char manufacturer[255] = "";
+  int64_t value180 = 0;
+  int8_t scaler = 0;
   
   // Get manufacturer (OBIS 129-129:199.130.3)
   position = memmem(message, messageSize, smlAddresses.manufacturer, sizeof(smlAddresses.manufacturer));
@@ -145,7 +158,7 @@ void extractSmlData (const char *message, uint16_t messageSize) {
     // 5. Field value -> this is interesting
     retVal = getNextAttribute(retVal.nextAttribute, messageSize - (retVal.nextAttribute - message));
     // copy the value to "manufacturer"
-    memcpy(manufacturer, retVal.attributePointer, retVal.lengthOfAttribute);    
+    memcpy(manufacturer, retVal.octetPointer, retVal.octedLength);    
     
     printf("Hersteller: %s\n", manufacturer);
   }
@@ -163,12 +176,12 @@ void extractSmlData (const char *message, uint16_t messageSize) {
     retVal = getNextAttribute(retVal.nextAttribute, messageSize - (retVal.nextAttribute - message));
     // 4. Field scaler -> ignore it
     retVal = getNextAttribute(retVal.nextAttribute, messageSize - (retVal.nextAttribute - message));
+    scaler = retVal.int64;
     // 5. Field value -> this is interesting
     retVal = getNextAttribute(retVal.nextAttribute, messageSize - (retVal.nextAttribute - message));
-    // copy the value to "manufacturer"
-    //memcpy(manufacturer, retVal.attributePointer, retVal.lengthOfAttribute);    
-    
-    // convert hex to int && apply scaler
+
+    value180 = retVal.int64 * exp10(scaler);
+    printf("1.8.0 (no scal): %ld Wh\n", value180);
   }
 }
 

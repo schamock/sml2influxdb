@@ -9,6 +9,7 @@ SRCEXT := c
 INC := -I include
 SOURCES := $(shell find $(SRCDIR) -type f -name '*.$(SRCEXT)')
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
+LIBS := -lm
 
 .PHONY: clean all
 
@@ -16,7 +17,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	@mkdir -p $(TARGETDIR)
-	$(CC) $^ -o $(TARGET) $(CFLAGS)
+	$(CC) $^ -o $(TARGET) $(CFLAGS) $(LIBS)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(BUILDDIR)
