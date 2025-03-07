@@ -116,6 +116,7 @@ bool readCharacter(int serialPort, char* nextByte) {
   }
   else if (n < 0) {
     perror("Fehler beim Lesen");
+    close(serialPort);
     exit(EXIT_FAILURE);
   }
   else {

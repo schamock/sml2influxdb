@@ -21,16 +21,9 @@
         '
 */
 
-void formatSmlForInflux(char* influxString,
-                        uint16_t stringLength,
-                        double value180,
-                        double value280,
-                        double voltageL1,
-                        double voltageL2,
-                        double voltageL3,
-                        double sumActiveInstantaneousPowerTotal,
-                        double sumActiveInstantaneousPowerL1,
-                        double sumActiveInstantaneousPowerL2,
+void formatSmlForInflux(char* influxString, uint16_t stringLength, double value180, double value280, double voltageL1,
+                        double voltageL2, double voltageL3, double sumActiveInstantaneousPowerTotal,
+                        double sumActiveInstantaneousPowerL1, double sumActiveInstantaneousPowerL2,
                         double sumActiveInstantaneousPowerL3 ) {
     snprintf(influxString, stringLength-1, INFLUX_MEASUREMENT " smlValue180=%.4f,smlValue280=%.4f,"
                       "sumActiveInstantaneousPowerTotal=%.2f,sumActiveInstantaneousPowerL1=%.2f," 
@@ -41,27 +34,31 @@ void formatSmlForInflux(char* influxString,
                     time(NULL));
 }
 
-int test(void) {
+
+void sendInfluxData() {
   CURL *curl;
-  CURLcode res;
+  CURLcode curlResult;
   struct curl_slist *headerList = {0};
 
   curl_global_init(CURL_GLOBAL_SSL);
   curl = curl_easy_init();
 
   if (curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, INFLUXDB_URL);
+    char lineProtLine[4000];
+    sprintf(lineProtLine, LINE_PROTOCOL " %ld", time(NULL));
 
     headerList = curl_slist_append(headerList, "Authorization: Token " INFLUX_TOKEN);
     headerList = curl_slist_append(headerList, "Content-Type: text/plain; charset=utf-8");
     headerList = curl_slist_append(headerList, "Accept: application/json");
+    curl_easy_setopt(curl, CURLOPT_URL, INFLUXDB_URL);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerList);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, LINE_PROTOCOL);
-    res = curl_easy_perform(curl);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, lineProtLine);
+    curlResult = curl_easy_perform(curl);
 
-    if (res != CURLE_OK) {
-      fprintf(stderr, "Error sending to InfluxDB: %s\n", curl_easy_strerror(res));
-    } else {
+    if (curlResult != CURLE_OK) {
+      fprintf(stderr, "Error sending to InfluxDB: %s\n", curl_easy_strerror(curlResult));
+    }
+    else {
       printf("Data successfully sent to InfluxDB!\n");
     }
 
@@ -72,6 +69,4 @@ int test(void) {
   }
 
   curl_global_cleanup();
-
-  return 0;
 }
