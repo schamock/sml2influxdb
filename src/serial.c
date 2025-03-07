@@ -110,17 +110,15 @@ char readCharacterTimeout(int serialPort, uint8_t timeoutSec) {
 */
 
 bool readCharacter(int serialPort, char* nextByte) {
-  while (1) {
-    ssize_t n = read(serialPort, nextByte, 1);
-    if (n > 0) {
-      return true;
-    }
-    else if (n < 0) {
-      perror("Fehler beim Lesen");
-      exit(EXIT_FAILURE);
-    }
-    else {
-      return false;
-    }
+  ssize_t n = read(serialPort, nextByte, 1);
+  if (n > 0) {
+    return true;
+  }
+  else if (n < 0) {
+    perror("Fehler beim Lesen");
+    exit(EXIT_FAILURE);
+  }
+  else {
+    return false;
   }
 }
