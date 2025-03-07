@@ -20,8 +20,15 @@ int main() {
   
   while (1) {
     // Read next character and put it to the smlString
-    smlString[counter++] = readCharacterTimeout(serialPort, SERIAL_TIMEOUT_SEC);
-    
+    //smlString[counter++] = readCharacterTimeout(serialPort, SERIAL_TIMEOUT_SEC);
+    //smlString[counter++] = readCharacter(serialPort);
+    bool serialResult = readCharacter(serialPort, &smlString[counter]);
+    if (serialResult)
+      counter++;
+    else
+      printf("Timeout!!\n");
+      
+
     if (isSmlStringComplete(smlString, counter)) {
       if (isSmlCrcCorrect(smlString, counter)) {
         result = extractSmlData(smlString, counter);

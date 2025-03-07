@@ -1,12 +1,13 @@
 #define _GNU_SOURCE  // otherwise CRTSCTS is not defined
 
 #include <termios.h> // TTY
-#include <fcntl.h>   //open
+#include <fcntl.h>   // open
 #include <stdio.h>   // perror
 #include <stdlib.h>  // exit
 #include <unistd.h>  // read
 #include <poll.h>    // poll
 #include <stdint.h>  // int types
+#include <stdbool.h> // boot datatype
 
 #include "config.h"
 #include "serial.h"
@@ -18,12 +19,12 @@ struct termios tty;
 int initSerial() {
   int serialPort = open(SERIAL_TTY_DEV, O_RDONLY | O_NOCTTY);
   if (serialPort == -1) {
-    perror("Fehler beim Öffnen des seriellen Ports");
+    perror("Error opening the serial port!");
     exit(EXIT_FAILURE);
   }
   
   if (tcgetattr(serialPort, &tty) != 0) {
-    perror("Fehler beim Abrufen der aktuellen Einstellungen");
+    perror("Error retrieving current tty settings!");
     exit(EXIT_FAILURE);
   }
 
@@ -47,7 +48,11 @@ int initSerial() {
   tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Keine Software-Flusskontrolle
   tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL); // Disable any special handling of received bytes
 
-  // Warten bis die Einstellungen aktiv sind
+  // VTIME defines the Timeout waiting for the next symbol. 0.1s accuracy
+  tty.c_cc[VTIME] = SERIAL_TIMEOUT_SEC * 10;
+  tty.c_cc[VMIN] = 0;
+
+  // apply settings
   if (tcsetattr(serialPort, TCSANOW, &tty) != 0) {
     perror("Fehler beim Setzen der Port-Einstellungen");
     exit(EXIT_FAILURE);
@@ -56,6 +61,7 @@ int initSerial() {
   return serialPort;
 }
 
+/*
 char readCharacterTimeout(int serialPort, uint8_t timeoutSec) {
   char smlChar;
   struct pollfd pollPort = {0};
@@ -99,5 +105,22 @@ char readCharacterTimeout(int serialPort, uint8_t timeoutSec) {
     perror("poll() error detected");
     close(serialPort);
     exit(EXIT_FAILURE);
+  }
+}
+*/
+
+bool readCharacter(int serialPort, char* nextByte) {
+  while (1) {
+    ssize_t n = read(serialPort, nextByte, 1);
+    if (n > 0) {
+      return true;
+    }
+    else if (n < 0) {
+      perror("Fehler beim Lesen");
+      exit(EXIT_FAILURE);
+    }
+    else {
+      return false;
+    }
   }
 }
