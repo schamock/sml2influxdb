@@ -13,6 +13,8 @@
 
 struct termios tty;
 
+// https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/
+
 int initSerial() {
   int serialPort = open(SERIAL_TTY_DEV, O_RDONLY | O_NOCTTY);
   if (serialPort == -1) {
@@ -25,9 +27,7 @@ int initSerial() {
     exit(EXIT_FAILURE);
   }
 
-  // Baudrate setzen (z.B. 9600)
-  cfsetispeed(&tty, B9600);
-  cfsetospeed(&tty, B9600);
+  cfsetspeed(&tty, B9600);
   
   // Weitere serielle Optionen einstellen
   tty.c_cflag &= ~PARENB; // Keine Parität
@@ -41,10 +41,11 @@ int initSerial() {
   tty.c_lflag &= ~ICANON; // Keine kanonische Eingabe (Zeilenpufferung deaktivieren)
   tty.c_lflag &= ~ECHO;   // Kein Echo der Eingaben
   tty.c_lflag &= ~ECHOE;  // Kein ECHO beim Löschen von Zeichen
+  tty.c_lflag &= ~ECHONL;  // Kein ECHO beim Löschen von Zeichen
   tty.c_lflag &= ~ISIG;   // Keine Signalzeichen (wie INT, QUIT, etc.)
   
   tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Keine Software-Flusskontrolle
-  tty.c_iflag &= ~(ICRNL | INLCR); // Keine Umwandlung von Zeichen
+  tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL); // Disable any special handling of received bytes
 
   // Warten bis die Einstellungen aktiv sind
   if (tcsetattr(serialPort, TCSANOW, &tty) != 0) {
