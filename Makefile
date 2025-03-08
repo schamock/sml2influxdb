@@ -1,8 +1,9 @@
-CC = gcc
-CFLAGS = -Wall -Wpedantic -Wextra -Werror
+CC := gcc
+CFLAGS := -Wall -Wpedantic -Wextra -Werror
 
+BINARY := sml2influxdb
 TARGETDIR := bin
-TARGET := $(TARGETDIR)/sml2influxdb
+TARGET := $(TARGETDIR)/$(BINARY)
 SRCDIR := src
 BUILDDIR := build
 SRCEXT := c
@@ -28,10 +29,11 @@ clean:
 
 install: $(TARGET)
 ifneq ($(shell id -u),0)
-	@echo "You must be root to perform this action!"
+	@echo "You must run 'make install' via sudo to perform this action!"
 	@exit 1
 else
-	install -m 744 $(TARGET) /usr/local/bin
+	install -m 754 $(TARGET) /usr/local/bin
+	chown $$SUDO_USER /usr/local/bin/$(BINARY)
 endif
 
 systemd-install: install
@@ -40,7 +42,7 @@ ifneq ($(shell id -u),0)
 	@exit 1
 else
 	@echo "Make sure, that the 'user' parameter in accessory/sml2influxdb.serivce is set to an apropriate value !!!"
-	install -m 644 accessory/sml2influxdb.serice /etc/systemd/system
+	install -m 644 accessory/sml2influxdb.service /etc/systemd/system
 	systemctl daemon-reload
 	@echo "You should run 'systemctl enable sml2influxdb.service' and 'systemctl start sml2influxdb.serivce' to start the service."
 endif
