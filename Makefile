@@ -28,7 +28,7 @@ clean:
 
 install: $(TARGET)
 ifneq ($(shell id -u),0)
-	@echo "You must be root to perform this action."
+	@echo "You must be root to perform this action!"
 	@exit 1
 else
 	install -m 744 $(TARGET) /usr/local/bin
@@ -36,12 +36,13 @@ endif
 
 systemd-install: install
 ifneq ($(shell id -u),0)
-	@echo "You must be root to perform this action."
+	@echo "You must be root to perform this action!"
 	@exit 1
 else
+	@echo "Make sure, that the 'user' parameter in accessory/sml2influxdb.serivce is set to an apropriate value !!!"
 	install -m 644 accessory/sml2influxdb.serice /etc/systemd/system
 	systemctl daemon-reload
-	@echo "You should run 'systemctl enable sml2influxdb.service' and 'systemctl start sml2influxdb.serivce' to start the service"
+	@echo "You should run 'systemctl enable sml2influxdb.service' and 'systemctl start sml2influxdb.serivce' to start the service."
 endif
 
 help:
