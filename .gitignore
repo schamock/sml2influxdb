@@ -1,5 +1,6 @@
 # User config
 include/config.h
+accessory/sml2influxdb.service
 
 # Prerequisites
 *.d
