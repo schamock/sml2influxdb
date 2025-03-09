@@ -49,7 +49,7 @@ sudo systemctl start sml2influxdb.service
 ```
 
 The script should now start automatically after it crashes or you reboot the host.  
-It is a good idea to check the logs from time to time, to see if there are any errors and/or if systemd needs to restart the program from time to time:
+It is a good idea to check the logs from time to time, to see if there are any errors and/or if systemd needs to restart the program for whatever reason:
 ```
 # Check the latest logs...
 journalctl -r -u sml2influxdb.service
