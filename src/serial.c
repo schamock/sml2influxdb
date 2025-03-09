@@ -12,7 +12,10 @@
 
 struct termios tty;
 
-// https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/
+/*
+TTY settings are inspired by this website:
+https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/
+*/
 
 int initSerial() {
   int serialPort = open(SERIAL_TTY_DEV, O_RDONLY | O_NOCTTY);
@@ -28,23 +31,21 @@ int initSerial() {
 
   cfsetspeed(&tty, B9600);
   
-  // Weitere serielle Optionen einstellen
-  tty.c_cflag &= ~PARENB; // Keine Parität
-  tty.c_cflag &= ~CSTOPB; // Ein Stop-Bit
-  tty.c_cflag &= ~CSIZE;  // Maske für die Datenbits
-  tty.c_cflag |= CS8;     // 8 Datenbits
-  tty.c_cflag &= ~CRTSCTS; // Keine Hardware-Flusskontrolle
-  tty.c_cflag |= CREAD | CLOCAL; // Lesen aktivieren und keine Kontrolle über das Modem
+  tty.c_cflag &= ~PARENB;         // no parity
+  tty.c_cflag &= ~CSTOPB;         // one stop bit
+  tty.c_cflag &= ~CSIZE;          // clear number of databits ...
+  tty.c_cflag |= CS8;             // ... and set it to 8 databits
+  tty.c_cflag &= ~CRTSCTS;        // disable HW-flowcontrol
+  tty.c_cflag |= CREAD | CLOCAL;  // activate reading and disable modem specific stuff
   
-  // Modemsteuerleitungen deaktivieren (optional)
-  tty.c_lflag &= ~ICANON; // Keine kanonische Eingabe (Zeilenpufferung deaktivieren)
-  tty.c_lflag &= ~ECHO;   // Kein Echo der Eingaben
-  tty.c_lflag &= ~ECHOE;  // Kein ECHO beim Löschen von Zeichen
-  tty.c_lflag &= ~ECHONL;  // Kein ECHO beim Löschen von Zeichen
-  tty.c_lflag &= ~ISIG;   // Keine Signalzeichen (wie INT, QUIT, etc.)
+  tty.c_lflag &= ~ICANON; // disable cononcial mode
+  tty.c_lflag &= ~ECHO;   // disable echo
+  tty.c_lflag &= ~ECHOE;  // disable echo erasure
+  tty.c_lflag &= ~ECHONL; // disable new line echo
+  tty.c_lflag &= ~ISIG;   // no interpretation of special chars (like INTR, QUIT, etc.)
   
-  tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Keine Software-Flusskontrolle
-  tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL); // Disable any special handling of received bytes
+  tty.c_iflag &= ~(IXON | IXOFF | IXANY);                           // no SW-flowcontrol
+  tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);  // Disable any special handling of received bytes
 
   // VTIME defines the Timeout waiting for the next symbol. 0.1s accuracy
   tty.c_cc[VTIME] = SERIAL_TIMEOUT_SEC * 10;
