@@ -1,6 +1,8 @@
 # User config
 include/config.h
 accessory/sml2influxdb.service
+# VS Code
+.vscode/
 
 # Prerequisites
 *.d
