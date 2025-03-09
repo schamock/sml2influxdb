@@ -54,7 +54,7 @@ It is a good idea to check the logs from time to time, to see if there are any e
 # Check the latest logs...
 journalctl -r -u sml2influxdb.service
 # ... or check the "tail -f"-like "liveview"
-# journalctl -f -u sml2influxdb.service
+journalctl -f -u sml2influxdb.service
 ```
 
 ## Which data is collected?
