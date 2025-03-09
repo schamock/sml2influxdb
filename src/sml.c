@@ -1,11 +1,11 @@
-#define _GNU_SOURCE  // memmem
+#define _GNU_SOURCE     // memmem
 
-#include <stdint.h>  // int Datatypes
-#include <stdbool.h> // bool
-#include <string.h>  // memmem
-#include <stdio.h>   // printf
-#include <math.h>    // exp10
-#include <sys/param.h> // min
+#include <stdint.h>     // int Datatypes
+#include <stdbool.h>    // bool
+#include <string.h>     // memmem
+#include <stdio.h>      // printf
+#include <math.h>       // exp10
+#include <sys/param.h>  // MIN()
 
 #include "sml.h"
 
@@ -116,14 +116,10 @@ smlAttribute getNextSmlAttribute(char* startPointer, uint16_t maxLength) {
     curByte = curPointer[0];
     lengthOfAttribute |= (curByte & 0x0F);
     dataOffset++;
-    //printf("found something!!!\n");
   }
   
-  //printf("Current: %02X  ### Length: %d\n", curByte, lengthOfAttribute);
-
   if (lengthOfAttribute-1 > 0) {
     if (returnValue.typeOfAttribute == SML_OCTET) {
-      //printf("Content (str): %.*s\n", lengthOfAttribute-1, curPointer+1);
       returnValue.octetPointer = curPointer+1;
       returnValue.octedLength = lengthOfAttribute-dataOffset;
     }
@@ -137,14 +133,8 @@ smlAttribute getNextSmlAttribute(char* startPointer, uint16_t maxLength) {
       // every byte needs to be added to the total value
       for (uint16_t i = 1; i<lengthOfAttribute; i++)
         returnValue.int64 = (returnValue.int64 << 8) | (uint8_t)curPointer[i];
-
-      //printf("\nContent (int): %ld\n", returnValue.int64);
     }
   }
-  /*
-  else
-    printf("No content!\n");
-  */
 
   returnValue.nextAttribute = startPointer += lengthOfAttribute;
   return returnValue;
@@ -178,68 +168,46 @@ smlResult extractSmlData (const char *message, uint16_t messageSize) {
   entry = getSmlListEntry(message, messageSize, smlAddresses.manufacturer);
   if (entry.isSet) {
     memcpy(result.manufacturer, entry.value.octetPointer, MIN(entry.value.octedLength, sizeof(result.manufacturer)-1));
-    //printf("Manufacturer: %.*s\n", entry.value.octedLength, entry.value.octetPointer);
   }
 
   entry = getSmlListEntry(message, messageSize, smlAddresses.value180);
   if (entry.isSet) {
     result.value180 = entry.value.int64 * exp10(entry.scaler.int64);
-    //printf("Value 1.8.0: %.4f Wh\n", result.value180);
   }
   entry = getSmlListEntry(message, messageSize, smlAddresses.value280);
   if (entry.isSet) {
     result.value280 = entry.value.int64 * exp10(entry.scaler.int64);
-    //printf("Value 2.8.0: %.4f Wh\n", result.value280);
   }
 
   entry = getSmlListEntry(message, messageSize, smlAddresses.voltageL1);
   if (entry.isSet) {
     result.voltageL1 = entry.value.uint64 * exp10(entry.scaler.int64);
-    //printf("Voltages: %.1f V | ", result.voltageL1);
   }
   entry = getSmlListEntry(message, messageSize, smlAddresses.voltageL2);
   if (entry.isSet) {
     result.voltageL2 = entry.value.uint64 * exp10(entry.scaler.int64);
-    //printf("%.1f V | ", result.voltageL2);
   }
   entry = getSmlListEntry(message, messageSize, smlAddresses.voltageL3);
   if (entry.isSet) {
     result.voltageL3 = entry.value.uint64 * exp10(entry.scaler.int64);
-    //printf("%.1f V\n", result.voltageL3);
   }
 
   entry = getSmlListEntry(message, messageSize, smlAddresses.activePowerTotal);
   if (entry.isSet) {
     result.sumActiveInstantaneousPowerTotal = entry.value.int64 * exp10(entry.scaler.int64);
-    //printf("Total Power: %.2f W\n", result.sumActiveInstantaneousPowerTotal);
   }
   entry = getSmlListEntry(message, messageSize, smlAddresses.activePowerL1);
   if (entry.isSet) {
     result.sumActiveInstantaneousPowerL1 = entry.value.int64 * exp10(entry.scaler.int64);
-    //printf("Phase Power: %.2f W | ", result.sumActiveInstantaneousPowerL1);
   }
   entry = getSmlListEntry(message, messageSize, smlAddresses.activePowerL2);
   if (entry.isSet) {
     result.sumActiveInstantaneousPowerL2 = entry.value.int64 * exp10(entry.scaler.int64);
-    //printf("%.2f W | ", result.sumActiveInstantaneousPowerL2);
   }
   entry = getSmlListEntry(message, messageSize, smlAddresses.activePowerL3);
   if (entry.isSet) {
     result.sumActiveInstantaneousPowerL3 = entry.value.int64 * exp10(entry.scaler.int64);
-    //printf("%.2f W\n", result.sumActiveInstantaneousPowerL3);
   }
-
-  /*
-  entry = getSmlListEntry(message, messageSize, smlAddresses.publickey);
-  if (entry.isSet) {
-    printf("Publickey (Length: %d):", entry.value.octedLength);
-    for (uint8_t i = 0; i < entry.value.octedLength; i++) {
-      if (i%10 == 0) printf("\n");
-      printf("0x%02X ", entry.value.octetPointer[i]);
-    }
-    printf("\n");
-  }
-  */
 
   return result;
 }

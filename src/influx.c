@@ -1,14 +1,12 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdbool.h> // boot datatype
-#include <stdlib.h>  // exit
-#include <time.h>
-#include <curl/curl.h> // sudo apt install libcurl4-openssl-dev
+#include <stdio.h>      // (s)printf
+#include <stdint.h>     // int datatypes
+#include <stdbool.h>    // boot datatype
+#include <stdlib.h>     // exit
+#include <time.h>       // time() for datatimestamp
+#include <curl/curl.h>  // install via "sudo apt install libcurl4-openssl-dev"
 #include "config.h"
 
-#define INFLUXDB_URL  "https://influx.ws3:8086/api/v2/write?org=" INFLUX_ORG "&bucket=" INFLUX_BUCKET "&precision=s"
-#define LINE_PROTOCOL INFLUX_MEASUREMENT ",location=office value=23.5"
+#define INFLUXDB_URL  INFLUX_SERVER "/api/v2/write?org=" INFLUX_ORG "&bucket=" INFLUX_BUCKET "&precision=s"
 
 uint16_t formatSmlForInflux(char* influxString, uint16_t maxStringLength, double value180, double value280, double voltageL1,
                         double voltageL2, double voltageL3, double sumActiveInstantaneousPowerTotal,

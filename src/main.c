@@ -1,9 +1,10 @@
-#include <stdio.h>
-#include <string.h>  // memset
-#include <stdint.h>  // int datatypes
-#include <stdbool.h> // boot datatype
-#include <stdlib.h>  // exit
-#include <unistd.h>  // sleep
+#include <stdio.h>      // (f)printf
+#include <string.h>     // memset
+#include <stdint.h>     // int datatypes
+#include <stdbool.h>    // boot datatype
+#include <stdlib.h>     // exit
+#include <unistd.h>     // sleep
+#include <sys/param.h>  // MIN()
 
 #include "config.h"
 #include "serial.h"
@@ -47,21 +48,17 @@ int main() {
         */
 
         uint32_t freeSpace = sizeof(influxBuffer) - influxStringPositionNext - 1;
-        uint32_t maxLength = (freeSpace > INFLUX_MAX_STRING_LENGTH) ? INFLUX_MAX_STRING_LENGTH : freeSpace;
-        uint16_t charsWritten = formatSmlForInflux(&influxBuffer[influxStringPositionNext], maxLength,
+        //uint32_t maxLength = (freeSpace > INFLUX_MAX_STRING_LENGTH) ? INFLUX_MAX_STRING_LENGTH : freeSpace;
+        uint16_t charsWritten = formatSmlForInflux(&influxBuffer[influxStringPositionNext], MIN(INFLUX_MAX_STRING_LENGTH, freeSpace),
                                                     smlData.value180, smlData.value280, smlData.voltageL1, smlData.voltageL2, smlData.voltageL3,
                                                     smlData.sumActiveInstantaneousPowerTotal, smlData.sumActiveInstantaneousPowerL1,
                                                     smlData.sumActiveInstantaneousPowerL2, smlData.sumActiveInstantaneousPowerL3);
         influxStringCount++;
         influxStringPositionNext += charsWritten;
-        
-        //printf("size of buffer: %ld\n", sizeof(influxBuffer));
-        //printf("Free space: %d // max length: %d // chars written: %d // string: %d // posNext: %d\n", freeSpace, maxLength, charsWritten, influxStringCount, influxStringPositionNext);
 
         // enough data to send?
         if (influxStringCount >= INFLUX_SEND_EVERY) {
           // send dataset to InfluxDB
-          printf("Attempt to send data (%d datasets)\n", influxStringCount);
           if (sendInfluxData(influxBuffer)) {
             // sendig was successful, deleting buffers and start over again
             memset(influxBuffer,0,sizeof(influxBuffer));
@@ -92,7 +89,8 @@ int main() {
 
       }
       else {
-        fprintf(stderr, "CRC nok\n");
+        // this happens from time to time. Typically there is no reason to log this
+        //fprintf(stderr, "CRC nok\n");
       }
       
       // Reset everything and start over

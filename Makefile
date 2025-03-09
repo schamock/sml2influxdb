@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall -Wpedantic -Wextra -Werror
+CFLAGS := -Wall -Wpedantic -Wextra -Werror -O2
 
 BINARY := sml2influxdb
 TARGETDIR := bin

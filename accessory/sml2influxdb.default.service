@@ -6,8 +6,8 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/sml2influxdb
 WorkingDirectory=/usr/local/bin
-StandardOutput=inherit
-StandardError=inherit
+StandardOutput=journal
+StandardError=journal
 Restart=always
 User=###USER###
 

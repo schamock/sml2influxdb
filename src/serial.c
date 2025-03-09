@@ -5,8 +5,6 @@
 #include <stdio.h>   // perror
 #include <stdlib.h>  // exit
 #include <unistd.h>  // read
-#include <poll.h>    // poll
-#include <stdint.h>  // int types
 #include <stdbool.h> // boot datatype
 
 #include "config.h"
@@ -60,54 +58,6 @@ int initSerial() {
 
   return serialPort;
 }
-
-/*
-char readCharacterTimeout(int serialPort, uint8_t timeoutSec) {
-  char smlChar;
-  struct pollfd pollPort = {0};
-  int ready;
-  ssize_t n;
-
-  pollPort.fd = serialPort;
-  pollPort.events = POLLIN;
-  ready = poll(&pollPort, 1, timeoutSec * 1000);
-
-  if (ready > 0) {
-    if (pollPort.revents & POLLIN) {
-      // char ready
-      n = read(serialPort, &smlChar, sizeof(smlChar));
-      if (n > 0) {
-        return smlChar;
-      }
-      else {
-        perror("read() return value <= 0");
-        close(serialPort);
-        exit(EXIT_FAILURE);
-      }
-    }
-    else {
-      // POLLERR, POLLHUP or PHLLNVAL
-      fprintf(stderr, "poll() error event: %s%s%s // \n",
-          (pollPort.revents & POLLERR)  ? "POLLERR "  : "", 
-          (pollPort.revents & POLLHUP)  ? "POLLHUP "  : "", 
-          (pollPort.revents & POLLNVAL) ? "POLLNVAL " : ""
-        );
-        close(serialPort);
-        exit(EXIT_FAILURE);
-    }
-  } else if (ready == 0) {
-    // timout
-    perror("poll() timeout detected");
-    close(serialPort);
-    exit(EXIT_FAILURE);
-  } else {
-    // error
-    perror("poll() error detected");
-    close(serialPort);
-    exit(EXIT_FAILURE);
-  }
-}
-*/
 
 bool readCharacter(int serialPort, char* nextByte) {
   ssize_t n = read(serialPort, nextByte, 1);
