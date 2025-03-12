@@ -30,8 +30,19 @@ int main() {
     bool serialResult = readCharacter(serialPort, &smlString[smlSymbolCounter]);
     if (serialResult)
       smlSymbolCounter++;
-    else
-      fprintf(stderr, "Serial timeout!!\n");
+    else {
+      // Timeout triggered!
+      // sometimes the following errors occure in /var/log/syslog:
+      //   ftdi_sio ttyUSB0: usb_serial_generic_read_bulk_callback - urb stopped: -32
+      // --> try to reopen the serial port. If that fails, initSerial() should fail and
+      // the program will quit. In this case systemd should restart it
+      fprintf(stderr, "Serial timeout! Trying to reopen serial port.\n");
+      if(0 != close(serialPort)) {
+        perror("Error while closing serialPort!");
+      }
+      serialPort = initSerial();
+      fprintf(stderr, "Reopen of serial port successful. Continuing...\n");
+    }
       
 
     if (isSmlStringComplete(smlString, smlSymbolCounter)) {
@@ -89,6 +100,7 @@ int main() {
 
       }
       else {
+        // CRC doesnt match
         // this happens from time to time. Typically there is no reason to log this
         //fprintf(stderr, "CRC nok\n");
       }

@@ -19,17 +19,20 @@ https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-port
 
 int initSerial() {
   int serialPort = open(SERIAL_TTY_DEV, O_RDONLY | O_NOCTTY);
-  if (serialPort == -1) {
+  if (-1 == serialPort) {
     perror("Error opening the serial port!");
     exit(EXIT_FAILURE);
   }
   
-  if (tcgetattr(serialPort, &tty) != 0) {
+  if (0 != tcgetattr(serialPort, &tty)) {
     perror("Error retrieving current tty settings!");
     exit(EXIT_FAILURE);
   }
 
-  cfsetspeed(&tty, B9600);
+  if (0 != cfsetspeed(&tty, B9600)) {
+    perror("Error setting the Baud rate!");
+    exit(EXIT_FAILURE);
+  }
   
   tty.c_cflag &= ~PARENB;         // no parity
   tty.c_cflag &= ~CSTOPB;         // one stop bit
@@ -49,11 +52,11 @@ int initSerial() {
 
   // VTIME defines the Timeout waiting for the next symbol. 0.1s accuracy
   tty.c_cc[VTIME] = SERIAL_TIMEOUT_SEC * 10;
-  tty.c_cc[VMIN] = 0;
+  tty.c_cc[VMIN]  = 0;
 
   // apply settings
-  if (tcsetattr(serialPort, TCSANOW, &tty) != 0) {
-    perror("Fehler beim Setzen der Port-Einstellungen");
+  if (0 != tcsetattr(serialPort, TCSANOW, &tty)) {
+    perror("Error setting the port config!");
     exit(EXIT_FAILURE);
   }
 
@@ -66,11 +69,12 @@ bool readCharacter(int serialPort, char* nextByte) {
     return true;
   }
   else if (n < 0) {
-    perror("Fehler beim Lesen");
+    perror("Error while reading from serial port!");
     close(serialPort);
     exit(EXIT_FAILURE);
   }
   else {
+    // Timeout triggered! The calling function may handle this
     return false;
   }
 }
