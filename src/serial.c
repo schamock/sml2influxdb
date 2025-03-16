@@ -5,7 +5,7 @@
 #include <stdio.h>   // perror
 #include <stdlib.h>  // exit
 #include <unistd.h>  // read
-#include <stdbool.h> // boot datatype
+#include <stdbool.h> // bool datatype
 
 #include "config.h"
 #include "serial.h"
@@ -20,17 +20,17 @@ https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-port
 int initSerial() {
   int serialPort = open(SERIAL_TTY_DEV, O_RDONLY | O_NOCTTY);
   if (-1 == serialPort) {
-    perror("Error opening the serial port!");
+    perror("Error opening the serial port");
     exit(EXIT_FAILURE);
   }
   
   if (0 != tcgetattr(serialPort, &tty)) {
-    perror("Error retrieving current tty settings!");
+    perror("Error retrieving current tty settings");
     exit(EXIT_FAILURE);
   }
 
   if (0 != cfsetspeed(&tty, B9600)) {
-    perror("Error setting the Baud rate!");
+    perror("Error setting the Baud rate");
     exit(EXIT_FAILURE);
   }
   
@@ -56,7 +56,7 @@ int initSerial() {
 
   // apply settings
   if (0 != tcsetattr(serialPort, TCSANOW, &tty)) {
-    perror("Error setting the port config!");
+    perror("Error setting the port config");
     exit(EXIT_FAILURE);
   }
 
@@ -69,9 +69,10 @@ bool readCharacter(int serialPort, char* nextByte) {
     return true;
   }
   else if (n < 0) {
-    perror("Error while reading from serial port!");
+    perror("Error while reading from serial port. Closing the port now");
     close(serialPort);
-    exit(EXIT_FAILURE);
+    return false;
+    //exit(EXIT_FAILURE); // don't do this, cause this can happen due to an interrupt request -> graceful shutdown
   }
   else {
     // Timeout triggered! The calling function may handle this
