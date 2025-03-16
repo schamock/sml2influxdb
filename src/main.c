@@ -1,3 +1,5 @@
+#define _GNU_SOURCE     // avoid phantom errors in IDE with sigaction (had no errors while compiling without it...)
+
 #include <stdio.h>      // (f)printf
 #include <string.h>     // memset
 #include <stdint.h>     // int datatypes
